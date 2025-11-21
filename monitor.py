@@ -1,0 +1,156 @@
+import urllib.request
+import socket
+import json
+import time
+import os
+import ssl
+from datetime import datetime, timedelta
+
+# Configuration
+URL = "https://watgpu.cs.uwaterloo.ca/"
+SSH_HOST = "watgpu.cs.uwaterloo.ca"
+SSH_PORT = 22
+HISTORY_FILE = "history.json"
+OUTPUT_HTML = "index.html"
+MAX_HISTORY_DAYS = 90  # Keep 3 months of history
+
+def check_http(url):
+    try:
+        req = urllib.request.Request(
+            url, 
+            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+        )
+        context = ssl._create_unverified_context()
+        with urllib.request.urlopen(req, timeout=10, context=context) as response:
+            return response.getcode() == 200
+    except Exception as e:
+        print(f"HTTP Check failed: {e}")
+        return False
+
+def check_ssh(host, port):
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(5)
+        result = sock.connect_ex((host, port))
+        sock.close()
+        return result == 0
+    except:
+        return False
+
+def load_history():
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE, 'r') as f:
+            return json.load(f)
+    return []
+
+def save_history(history):
+    # Prune old history
+    cutoff = datetime.now() - timedelta(days=MAX_HISTORY_DAYS)
+    new_history = [
+        entry for entry in history 
+        if datetime.fromisoformat(entry['timestamp']) > cutoff
+    ]
+    
+    with open(HISTORY_FILE, 'w') as f:
+        json.dump(new_history, f, indent=2)
+    return new_history
+
+def calculate_uptime(history, days):
+    if not history:
+        return 100.0
+        
+    cutoff = datetime.now() - timedelta(days=days)
+    relevant_entries = [
+        entry for entry in history 
+        if datetime.fromisoformat(entry['timestamp']) > cutoff
+    ]
+    
+    if not relevant_entries:
+        return 100.0
+        
+    up_count = sum(1 for entry in relevant_entries if entry['http_up'] and entry['ssh_up'])
+    return (up_count / len(relevant_entries)) * 100
+
+def generate_html(history):
+    uptime_24h = calculate_uptime(history, 1)
+    uptime_7d = calculate_uptime(history, 7)
+    uptime_30d = calculate_uptime(history, 30)
+    
+    latest = history[-1] if history else None
+    is_up = latest and latest['http_up'] and latest['ssh_up']
+    status_color = "green" if is_up else "red"
+    status_text = "ONLINE" if is_up else "DOWN"
+    last_checked = datetime.fromisoformat(latest['timestamp']).strftime("%Y-%m-%d %H:%M:%S") if latest else "Never"
+
+    html_content = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Is WatGPU Down?</title>
+    <style>
+        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 50px; background-color: #f4f4f9; color: #333; }}
+        .status-card {{ background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block; max-width: 600px; width: 100%; }}
+        .status {{ font-size: 48px; font-weight: bold; color: {status_color}; margin: 20px 0; }}
+        .metrics {{ display: flex; justify-content: space-around; margin-top: 30px; }}
+        .metric {{ text-align: center; }}
+        .metric-value {{ font-size: 24px; font-weight: bold; }}
+        .metric-label {{ color: #666; font-size: 14px; }}
+        .details {{ margin-top: 30px; text-align: left; font-size: 14px; color: #666; }}
+        .timestamp {{ color: #888; margin-top: 20px; font-size: 12px; }}
+    </style>
+</head>
+<body>
+    <div class="status-card">
+        <h1>Is WatGPU Down?</h1>
+        <div class="status">{status_text}</div>
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-value">{uptime_24h:.1f}%</div>
+                <div class="metric-label">24h Uptime</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">{uptime_7d:.1f}%</div>
+                <div class="metric-label">7d Uptime</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">{uptime_30d:.1f}%</div>
+                <div class="metric-label">30d Uptime</div>
+            </div>
+        </div>
+        <div class="details">
+            <p><strong>HTTP Status:</strong> {'✅ OK' if latest and latest['http_up'] else '❌ FAIL'}</p>
+            <p><strong>SSH Status:</strong> {'✅ OK' if latest and latest['ssh_up'] else '❌ FAIL'}</p>
+        </div>
+        <div class="timestamp">Last checked: {last_checked}</div>
+    </div>
+</body>
+</html>
+    """
+    
+    with open(OUTPUT_HTML, 'w') as f:
+        f.write(html_content)
+
+def main():
+    http_up = check_http(URL)
+    ssh_up = check_ssh(SSH_HOST, SSH_PORT)
+    
+    timestamp = datetime.now().isoformat()
+    
+    entry = {
+        "timestamp": timestamp,
+        "http_up": http_up,
+        "ssh_up": ssh_up
+    }
+    
+    history = load_history()
+    history.append(entry)
+    history = save_history(history)
+    generate_html(history)
+    
+    print(f"Check complete. HTTP: {http_up}, SSH: {ssh_up}")
+
+if __name__ == "__main__":
+    main()
+
