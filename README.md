@@ -1,7 +1,7 @@
 # Is WatGPU Down?
 
 A simple status page for the [WATGPU](https://watgpu.cs.uwaterloo.ca/) cluster.
-
+The watgpu is frequently down and it makes me mad. So here we are.
 This repository automatically checks the status of the WATGPU cluster (HTTP and SSH) every 15 minutes and updates the status page.
 
 ## How it works
