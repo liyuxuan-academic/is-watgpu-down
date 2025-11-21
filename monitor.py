@@ -4,6 +4,8 @@ import json
 import time
 import os
 import ssl
+import subprocess
+import platform
 from datetime import datetime, timedelta
 
 # Configuration
@@ -34,6 +36,18 @@ def check_ssh(host, port):
         result = sock.connect_ex((host, port))
         sock.close()
         return result == 0
+    except:
+        return False
+
+def check_ping(host):
+    try:
+        param = '-n' if platform.system().lower() == 'windows' else '-c'
+        # Ping 1 packet, timeout 2 seconds (if supported by ping, otherwise standard timeout)
+        # Note: standard ping doesn't always support timeout easily across platforms without flags
+        command = ['ping', param, '1', host]
+        
+        # Run ping command, suppressing output
+        return subprocess.call(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
     except:
         return False
 
@@ -68,7 +82,11 @@ def calculate_uptime(history, days):
     if not relevant_entries:
         return 100.0
         
-    up_count = sum(1 for entry in relevant_entries if entry['http_up'] and entry['ssh_up'])
+    # Consider UP only if ALL services are UP (HTTP, SSH, and Ping if available)
+    up_count = sum(
+        1 for entry in relevant_entries 
+        if entry.get('http_up', False) and entry.get('ssh_up', False) and entry.get('ping_up', True)
+    )
     return (up_count / len(relevant_entries)) * 100
 
 def generate_html(history):
@@ -77,7 +95,13 @@ def generate_html(history):
     uptime_30d = calculate_uptime(history, 30)
     
     latest = history[-1] if history else None
-    is_up = latest and latest['http_up'] and latest['ssh_up']
+    
+    # Safe get for ping_up since old history might not have it
+    ping_status = latest.get('ping_up', False) if latest else False
+    
+    # Status logic: ALL tests must pass
+    is_up = latest and latest.get('http_up', False) and latest.get('ssh_up', False) and ping_status
+
     status_color = "green" if is_up else "red"
     status_text = "ONLINE" if is_up else "DOWN"
     last_checked = datetime.fromisoformat(latest['timestamp']).strftime("%Y-%m-%d %H:%M:%S") if latest else "Never"
@@ -120,8 +144,9 @@ def generate_html(history):
             </div>
         </div>
         <div class="details">
-            <p><strong>HTTP Status:</strong> {'✅ OK' if latest and latest['http_up'] else '❌ FAIL'}</p>
-            <p><strong>SSH Status:</strong> {'✅ OK' if latest and latest['ssh_up'] else '❌ FAIL'}</p>
+            <p><strong>SSH Status (HPC):</strong> {'✅ OK' if latest and latest['ssh_up'] else '❌ FAIL'}</p>
+            <p><strong>Ping Status:</strong> {'✅ OK' if ping_status else '❌ FAIL'}</p>
+            <p><strong>Website (HTTP):</strong> {'✅ OK' if latest and latest['http_up'] else '❌ FAIL'}</p>
         </div>
         <div class="timestamp">Last checked: {last_checked}</div>
     </div>
@@ -135,13 +160,15 @@ def generate_html(history):
 def main():
     http_up = check_http(URL)
     ssh_up = check_ssh(SSH_HOST, SSH_PORT)
+    ping_up = check_ping(SSH_HOST)
     
     timestamp = datetime.now().isoformat()
     
     entry = {
         "timestamp": timestamp,
         "http_up": http_up,
-        "ssh_up": ssh_up
+        "ssh_up": ssh_up,
+        "ping_up": ping_up
     }
     
     history = load_history()
@@ -149,7 +176,7 @@ def main():
     history = save_history(history)
     generate_html(history)
     
-    print(f"Check complete. HTTP: {http_up}, SSH: {ssh_up}")
+    print(f"Check complete. HTTP: {http_up}, SSH: {ssh_up}, Ping: {ping_up}")
 
 if __name__ == "__main__":
     main()
