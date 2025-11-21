@@ -105,6 +105,13 @@ def generate_html(history):
     status_color = "green" if is_up else "red"
     status_text = "ONLINE" if is_up else "DOWN"
     last_checked = datetime.fromisoformat(latest['timestamp']).strftime("%Y-%m-%d %H:%M:%S") if latest else "Never"
+    
+    # Determine start date
+    if history:
+        first_entry = history[0]
+        start_date = datetime.fromisoformat(first_entry['timestamp']).strftime("%Y-%m-%d")
+    else:
+        start_date = datetime.now().strftime("%Y-%m-%d")
 
     html_content = f"""
 <!DOCTYPE html>
@@ -143,6 +150,7 @@ def generate_html(history):
                 <div class="metric-label">30d Uptime</div>
             </div>
         </div>
+        <div class="timestamp">Statistics start from {start_date}</div>
         <div class="details">
             <p><strong>SSH Status (HPC):</strong> {'✅ OK' if latest and latest['ssh_up'] else '❌ FAIL'}</p>
             <p><strong>Ping Status:</strong> {'✅ OK' if ping_status else '❌ FAIL'}</p>

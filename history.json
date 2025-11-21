@@ -10,5 +10,17 @@
     "http_up": true,
     "ssh_up": true,
     "ping_up": false
+  },
+  {
+    "timestamp": "2025-11-21T17:22:02.271210",
+    "http_up": true,
+    "ssh_up": true,
+    "ping_up": false
+  },
+  {
+    "timestamp": "2025-11-21T17:23:06.776612",
+    "http_up": true,
+    "ssh_up": true,
+    "ping_up": false
   }
 ]
