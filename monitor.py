@@ -6,7 +6,7 @@ import os
 import ssl
 import subprocess
 import platform
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 # Configuration
 URL = "https://watgpu.cs.uwaterloo.ca/"
@@ -61,11 +61,15 @@ def save_history(history):
     # Prune old history (if MAX_HISTORY_DAYS is set to a reasonable value)
     # If MAX_HISTORY_DAYS is very large, skip pruning to keep forever
     if MAX_HISTORY_DAYS < 36500:  # Less than 100 years, do pruning
-        cutoff = datetime.now() - timedelta(days=MAX_HISTORY_DAYS)
-        new_history = [
-            entry for entry in history 
-            if datetime.fromisoformat(entry['timestamp']) > cutoff
-        ]
+        cutoff = datetime.now(timezone.utc) - timedelta(days=MAX_HISTORY_DAYS)
+        new_history = []
+        for entry in history:
+            dt = datetime.fromisoformat(entry['timestamp'])
+            # Make timezone-aware if needed for comparison
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            if dt > cutoff:
+                new_history.append(entry)
     else:
         # Keep all history
         new_history = history
@@ -78,11 +82,16 @@ def calculate_uptime(history, days):
     if not history:
         return 100.0
         
-    cutoff = datetime.now() - timedelta(days=days)
-    relevant_entries = [
-        entry for entry in history 
-        if datetime.fromisoformat(entry['timestamp']) > cutoff
-    ]
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    relevant_entries = []
+    for entry in history:
+        dt = datetime.fromisoformat(entry['timestamp'])
+        # Make timezone-aware if needed for comparison
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        if dt > cutoff:
+            relevant_entries.append(entry)
+
     
     if not relevant_entries:
         return 100.0
@@ -114,22 +123,25 @@ def generate_html(history):
     # Assuming stored timestamps are in UTC (GitHub Actions runs in UTC)
     def convert_to_toronto_time(dt):
         """Convert datetime to Toronto time (EST/EDT)"""
+        # Strip timezone info for DST calculation (we just need the date)
+        dt_naive = dt.replace(tzinfo=None) if dt.tzinfo else dt
+        
         # DST calculation: 2nd Sunday in March to 1st Sunday in November
-        def is_dst(dt):
+        def is_dst(dt_check):
             # 2nd Sunday in March
-            dst_start = datetime(dt.year, 3, 8)
+            dst_start = datetime(dt_check.year, 3, 8)
             while dst_start.weekday() != 6:
                 dst_start += timedelta(days=1)
             
             # 1st Sunday in November
-            dst_end = datetime(dt.year, 11, 1)
+            dst_end = datetime(dt_check.year, 11, 1)
             while dst_end.weekday() != 6:
                 dst_end += timedelta(days=1)
             
-            return dst_start <= dt < dst_end
+            return dst_start <= dt_check < dst_end
         
-        offset = -4 if is_dst(dt) else -5
-        return dt + timedelta(hours=offset)
+        offset = -4 if is_dst(dt_naive) else -5
+        return dt_naive + timedelta(hours=offset)
     
     if latest:
         utc_time = datetime.fromisoformat(latest['timestamp'])
@@ -204,7 +216,8 @@ def main():
     ssh_up = check_ssh(SSH_HOST, SSH_PORT)
     ping_up = check_ping(SSH_HOST)
     
-    timestamp = datetime.now().isoformat()
+    # Store timestamp in UTC
+    timestamp = datetime.now(timezone.utc).isoformat()
     
     entry = {
         "timestamp": timestamp,

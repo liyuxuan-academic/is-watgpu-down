@@ -1,96 +1,12 @@
 [
   {
-    "timestamp": "2025-11-21T17:16:05.844982",
+    "timestamp": "2025-11-22T03:27:40.511797+00:00",
     "http_up": true,
     "ssh_up": true,
     "ping_up": false
   },
   {
-    "timestamp": "2025-11-21T17:16:28.732534",
-    "http_up": true,
-    "ssh_up": true,
-    "ping_up": false
-  },
-  {
-    "timestamp": "2025-11-21T17:22:02.271210",
-    "http_up": true,
-    "ssh_up": true,
-    "ping_up": false
-  },
-  {
-    "timestamp": "2025-11-21T17:23:06.776612",
-    "http_up": true,
-    "ssh_up": true,
-    "ping_up": false
-  },
-  {
-    "timestamp": "2025-11-21T22:32:27.460076",
-    "http_up": true,
-    "ssh_up": true,
-    "ping_up": false
-  },
-  {
-    "timestamp": "2025-11-21T22:48:33.789501",
-    "http_up": true,
-    "ssh_up": true,
-    "ping_up": false
-  },
-  {
-    "timestamp": "2025-11-21T23:12:35.358983",
-    "http_up": true,
-    "ssh_up": true,
-    "ping_up": false
-  },
-  {
-    "timestamp": "2025-11-21T23:28:54.247425",
-    "http_up": true,
-    "ssh_up": true,
-    "ping_up": false
-  },
-  {
-    "timestamp": "2025-11-21T23:39:16.126098",
-    "http_up": true,
-    "ssh_up": true,
-    "ping_up": false
-  },
-  {
-    "timestamp": "2025-11-21T23:48:02.008777",
-    "http_up": true,
-    "ssh_up": true,
-    "ping_up": false
-  },
-  {
-    "timestamp": "2025-11-22T01:01:37.023603",
-    "http_up": true,
-    "ssh_up": true,
-    "ping_up": false
-  },
-  {
-    "timestamp": "2025-11-22T02:41:42.300171",
-    "http_up": true,
-    "ssh_up": true,
-    "ping_up": false
-  },
-  {
-    "timestamp": "2025-11-21T22:14:25.804502",
-    "http_up": true,
-    "ssh_up": true,
-    "ping_up": false
-  },
-  {
-    "timestamp": "2025-11-21T22:15:34.531919",
-    "http_up": true,
-    "ssh_up": true,
-    "ping_up": false
-  },
-  {
-    "timestamp": "2025-11-21T22:16:44.997911",
-    "http_up": true,
-    "ssh_up": true,
-    "ping_up": false
-  },
-  {
-    "timestamp": "2025-11-21T22:21:46.411833",
+    "timestamp": "2025-11-22T03:28:11.590893+00:00",
     "http_up": true,
     "ssh_up": true,
     "ping_up": false
