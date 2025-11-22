@@ -185,15 +185,15 @@ def generate_html(history):
         <div class="metrics">
             <div class="metric">
                 <div class="metric-value">{uptime_24h:.1f}%</div>
-                <div class="metric-label">24h Uptime</div>
+                <div class="metric-label">24 Hour Uptime</div>
             </div>
             <div class="metric">
                 <div class="metric-value">{uptime_7d:.1f}%</div>
-                <div class="metric-label">7d Uptime</div>
+                <div class="metric-label">7 Day Uptime</div>
             </div>
             <div class="metric">
                 <div class="metric-value">{uptime_30d:.1f}%</div>
-                <div class="metric-label">30d Uptime</div>
+                <div class="metric-label">30 Day Uptime</div>
             </div>
         </div>
         <div class="timestamp">Statistics start from {start_date}</div>
