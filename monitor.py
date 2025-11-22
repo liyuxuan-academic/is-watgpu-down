@@ -58,12 +58,17 @@ def load_history():
     return []
 
 def save_history(history):
-    # Prune old history
-    cutoff = datetime.now() - timedelta(days=MAX_HISTORY_DAYS)
-    new_history = [
-        entry for entry in history 
-        if datetime.fromisoformat(entry['timestamp']) > cutoff
-    ]
+    # Prune old history (if MAX_HISTORY_DAYS is set to a reasonable value)
+    # If MAX_HISTORY_DAYS is very large, skip pruning to keep forever
+    if MAX_HISTORY_DAYS < 36500:  # Less than 100 years, do pruning
+        cutoff = datetime.now() - timedelta(days=MAX_HISTORY_DAYS)
+        new_history = [
+            entry for entry in history 
+            if datetime.fromisoformat(entry['timestamp']) > cutoff
+        ]
+    else:
+        # Keep all history
+        new_history = history
     
     with open(HISTORY_FILE, 'w') as f:
         json.dump(new_history, f, indent=2)
