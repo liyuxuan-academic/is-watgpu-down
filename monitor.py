@@ -14,7 +14,7 @@ SSH_HOST = "watgpu.cs.uwaterloo.ca"
 SSH_PORT = 22
 HISTORY_FILE = "history.json"
 OUTPUT_HTML = "index.html"
-MAX_HISTORY_DAYS = 90  # Keep 3 months of history
+MAX_HISTORY_DAYS = 100000000000 # Keep forever
 
 def check_http(url):
     try:
@@ -104,12 +104,41 @@ def generate_html(history):
 
     status_color = "green" if is_up else "red"
     status_text = "ONLINE" if is_up else "DOWN"
-    last_checked = datetime.fromisoformat(latest['timestamp']).strftime("%Y-%m-%d %H:%M:%S") if latest else "Never"
+    
+    # Convert timestamps to Toronto time for display
+    # Assuming stored timestamps are in UTC (GitHub Actions runs in UTC)
+    def convert_to_toronto_time(dt):
+        """Convert datetime to Toronto time (EST/EDT)"""
+        # DST calculation: 2nd Sunday in March to 1st Sunday in November
+        def is_dst(dt):
+            # 2nd Sunday in March
+            dst_start = datetime(dt.year, 3, 8)
+            while dst_start.weekday() != 6:
+                dst_start += timedelta(days=1)
+            
+            # 1st Sunday in November
+            dst_end = datetime(dt.year, 11, 1)
+            while dst_end.weekday() != 6:
+                dst_end += timedelta(days=1)
+            
+            return dst_start <= dt < dst_end
+        
+        offset = -4 if is_dst(dt) else -5
+        return dt + timedelta(hours=offset)
+    
+    if latest:
+        utc_time = datetime.fromisoformat(latest['timestamp'])
+        toronto_time = convert_to_toronto_time(utc_time)
+        last_checked = toronto_time.strftime("%Y-%m-%d %H:%M:%S") + " ET (checks every 15 mins)"
+    else:
+        last_checked = "Never"
     
     # Determine start date
     if history:
         first_entry = history[0]
-        start_date = datetime.fromisoformat(first_entry['timestamp']).strftime("%Y-%m-%d")
+        utc_start = datetime.fromisoformat(first_entry['timestamp'])
+        toronto_start = convert_to_toronto_time(utc_start)
+        start_date = toronto_start.strftime("%Y-%m-%d")
     else:
         start_date = datetime.now().strftime("%Y-%m-%d")
 
