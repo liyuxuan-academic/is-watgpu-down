@@ -19660,5 +19660,11 @@
     "http_up": true,
     "ssh_up": true,
     "ping_up": false
+  },
+  {
+    "timestamp": "2026-01-19T19:15:40.226532+00:00",
+    "http_up": false,
+    "ssh_up": false,
+    "ping_up": false
   }
 ]
