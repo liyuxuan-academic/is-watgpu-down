@@ -24130,5 +24130,11 @@
     "http_up": true,
     "ssh_up": true,
     "ping_up": false
+  },
+  {
+    "timestamp": "2026-02-08T04:32:07.177524+00:00",
+    "http_up": false,
+    "ssh_up": false,
+    "ping_up": false
   }
 ]
