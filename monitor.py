@@ -96,10 +96,10 @@ def calculate_uptime(history, days):
     if not relevant_entries:
         return 100.0
         
-    # Consider UP only if ALL services are UP (HTTP, SSH, and Ping if available)
+    # Uptime is based on SSH availability only.
     up_count = sum(
         1 for entry in relevant_entries 
-        if entry.get('http_up', False) and entry.get('ssh_up', False) and entry.get('ping_up', True)
+        if entry.get('ssh_up', False)
     )
     return (up_count / len(relevant_entries)) * 100
 
@@ -113,8 +113,8 @@ def generate_html(history):
     # Safe get for ping_up since old history might not have it
     ping_status = latest.get('ping_up', False) if latest else False
     
-    # Status logic: ALL tests must pass
-    is_up = latest and latest.get('http_up', False) and latest.get('ssh_up', False) and ping_status
+    # Current status is based on SSH availability only.
+    is_up = bool(latest and latest.get('ssh_up', False))
 
     status_color = "green" if is_up else "red"
     status_text = "ONLINE" if is_up else "DOWN"
@@ -235,4 +235,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

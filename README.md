@@ -2,7 +2,7 @@
 
 A simple [status page](http://liyuxuan-academic.github.io/is-watgpu-down/) for the [WATGPU](https://watgpu.cs.uwaterloo.ca/) cluster.
 The watgpu is frequently down and it makes me mad. So here we are.
-This repository automatically checks the status of the WATGPU cluster (HTTP and SSH) every 15 minutes and updates the status page.
+This repository automatically checks the status of the WATGPU cluster every 15 minutes and updates the status page.
 
 ## How it works
 
@@ -12,6 +12,7 @@ This repository automatically checks the status of the WATGPU cluster (HTTP and 
    - Checks SSH connectivity to `watgpu.cs.uwaterloo.ca:22`
    - Updates `history.json`
    - Generates a new `index.html`
+   - Uses SSH status as the source of truth for the overall up/down state and uptime metrics
 3. The results are committed back to the repository.
 4. GitHub Pages serves the `index.html`.
 
@@ -23,4 +24,3 @@ This repository automatically checks the status of the WATGPU cluster (HTTP and 
    - Branch: `main`
    - Folder: `/` (root)
 3. The action will start running automatically.
-
