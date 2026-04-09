@@ -103,10 +103,18 @@ def calculate_uptime(history, days):
     )
     return (up_count / len(relevant_entries)) * 100
 
+def calculate_all_time_uptime(history):
+    if not history:
+        return 100.0
+
+    up_count = sum(1 for entry in history if entry.get('ssh_up', False))
+    return (up_count / len(history)) * 100
+
 def generate_html(history):
     uptime_24h = calculate_uptime(history, 1)
     uptime_7d = calculate_uptime(history, 7)
     uptime_30d = calculate_uptime(history, 30)
+    uptime_all_time = calculate_all_time_uptime(history)
     
     latest = history[-1] if history else None
     
@@ -170,8 +178,8 @@ def generate_html(history):
         body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 50px; background-color: #f4f4f9; color: #333; }}
         .status-card {{ background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block; max-width: 600px; width: 100%; }}
         .status {{ font-size: 48px; font-weight: bold; color: {status_color}; margin: 20px 0; }}
-        .metrics {{ display: flex; justify-content: space-around; margin-top: 30px; }}
-        .metric {{ text-align: center; }}
+        .metrics {{ display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px; margin-top: 30px; }}
+        .metric {{ text-align: center; flex: 1 1 120px; }}
         .metric-value {{ font-size: 24px; font-weight: bold; }}
         .metric-label {{ color: #666; font-size: 14px; }}
         .details {{ margin-top: 30px; text-align: left; font-size: 14px; color: #666; }}
@@ -184,16 +192,20 @@ def generate_html(history):
         <div class="status">{status_text}</div>
         <div class="metrics">
             <div class="metric">
-                <div class="metric-value">{uptime_24h:.1f}%</div>
+                <div class="metric-value">{uptime_24h:.2f}%</div>
                 <div class="metric-label">24 Hour Uptime</div>
             </div>
             <div class="metric">
-                <div class="metric-value">{uptime_7d:.1f}%</div>
+                <div class="metric-value">{uptime_7d:.2f}%</div>
                 <div class="metric-label">7 Day Uptime</div>
             </div>
             <div class="metric">
-                <div class="metric-value">{uptime_30d:.1f}%</div>
+                <div class="metric-value">{uptime_30d:.2f}%</div>
                 <div class="metric-label">30 Day Uptime</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">{uptime_all_time:.2f}%</div>
+                <div class="metric-label">All-Time Uptime (since {start_date})</div>
             </div>
         </div>
         <div class="timestamp">Statistics start from {start_date}</div>
