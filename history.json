@@ -37552,5 +37552,11 @@
     "http_up": true,
     "ssh_up": true,
     "ping_up": false
+  },
+  {
+    "timestamp": "2026-05-06T21:55:37.340266+00:00",
+    "http_up": false,
+    "ssh_up": false,
+    "ping_up": false
   }
 ]
