@@ -40030,5 +40030,11 @@
     "http_up": false,
     "ssh_up": false,
     "ping_up": false
+  },
+  {
+    "timestamp": "2026-06-12T15:46:38.581584+00:00",
+    "http_up": true,
+    "ssh_up": true,
+    "ping_up": false
   }
 ]
