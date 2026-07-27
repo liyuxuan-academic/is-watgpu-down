@@ -43312,5 +43312,11 @@
     "http_up": true,
     "ssh_up": true,
     "ping_up": false
+  },
+  {
+    "timestamp": "2026-07-27T14:14:54.951817+00:00",
+    "http_up": false,
+    "ssh_up": false,
+    "ping_up": false
   }
 ]
