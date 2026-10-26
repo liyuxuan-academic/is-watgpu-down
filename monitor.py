@@ -7,6 +7,7 @@ import ssl
 import subprocess
 import platform
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 # Configuration
 URL = "https://watgpu.cs.uwaterloo.ca/"
@@ -127,29 +128,12 @@ def generate_html(history):
     status_color = "green" if is_up else "red"
     status_text = "ONLINE" if is_up else "DOWN"
     
-    # Convert timestamps to Toronto time for display
-    # Assuming stored timestamps are in UTC (GitHub Actions runs in UTC)
+    # Convert timestamps for display only; history remains in UTC.
     def convert_to_toronto_time(dt):
-        """Convert datetime to Toronto time (EST/EDT)"""
-        # Strip timezone info for DST calculation (we just need the date)
-        dt_naive = dt.replace(tzinfo=None) if dt.tzinfo else dt
-        
-        # DST calculation: 2nd Sunday in March to 1st Sunday in November
-        def is_dst(dt_check):
-            # 2nd Sunday in March
-            dst_start = datetime(dt_check.year, 3, 8)
-            while dst_start.weekday() != 6:
-                dst_start += timedelta(days=1)
-            
-            # 1st Sunday in November
-            dst_end = datetime(dt_check.year, 11, 1)
-            while dst_end.weekday() != 6:
-                dst_end += timedelta(days=1)
-            
-            return dst_start <= dt_check < dst_end
-        
-        offset = -4 if is_dst(dt_naive) else -5
-        return dt_naive + timedelta(hours=offset)
+        """Convert to Toronto time, treating legacy naive timestamps as UTC."""
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(ZoneInfo('America/Toronto'))
     
     if latest:
         utc_time = datetime.fromisoformat(latest['timestamp'])
